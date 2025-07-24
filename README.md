@@ -104,8 +104,6 @@ cd ecommerce-microservices
 
 2. **Install dependencies for each service**
 ```bash
-# Install root dependencies
-npm install
 
 # Install User Service dependencies
 cd backend/user-service && npm install
@@ -166,12 +164,8 @@ REACT_APP_ORDER_SERVICE_URL=http://localhost:3004
 
 ### Running the Application
 
-**Option 1: Run all services concurrently (from root directory)**
-```bash
-npm run dev
-```
 
-**Option 2: Run services individually**
+** Run services individually**
 
 Terminal 1 - User Service:
 ```bash
