@@ -1,36 +1,187 @@
-# 🛠️ Terraform Mongo Backend Deployment with Docker
+# Microservices Deployment with Terraform and Docker on AWS
 
-This project provisions infrastructure on AWS using Terraform and deploys a backend application (Node.js or Python) that connects to a MongoDB database (MongoDB Atlas).
+This project provisions AWS infrastructure using Terraform and deploys five Dockerized microservices (frontend + 4 backend services) on an EC2 instance. The frontend is publicly accessible.
 
-## 🏗️ Architecture Overview
+---
 
-This application demonstrates modern microservices architecture with the following components:
+#### Terminal results with IP and DNS details
+
+![terminal](Screenshots/terminal_terraform_ec2.png)
+
+---
+
+#### Terminal docker installed view:
+
+![terminal](Screenshots/docker_install.png)
+
+---
+
+#### EC2 on Console
+
+![terminal](Screenshots/ec2_console.png)
+
+---
+
+#### VPC Console View:
+
+![terminal](Screenshots/VPC.png)
+
+---
+
+#### Security Group Console View:
+
+![terminal](Screenshots/security_gp.png)
+
+---
+
+#### Ec2 Subnet Console View:
+
+![terminal](Screenshots/subnet_ec2.png)
+
+---
+
+#### Frotend on Public Access :
+
+![terminal](Screenshots/frontend_public.png)
+
+---
+
+#### Frontend user logged-in :
+
+![terminal](Screenshots/frontend_to_user_service.png)
+
+---
+
+### Frontend talking to products :
+
+![terminal](Screenshots/frontend_to_product_service.png)
+
+---
+
+## Project Structure
 
 ```
-Frontend (React) → API Gateway → Microservices
-                                    ├── User Service (3001)
-                                    ├── Product Service (3002)
-                                    ├── Cart Service (3003)
-                                    └── Order Service (3004)
-
-```
-```bash
-.
-
+skill_test_03_B10_26_july/
+├── frontend
 ├── backend
-├── frontend                  # Application code
-├── terraform/              # Terraform configuration files
+├── Screenshots
+├── terraform/                # Terraform configuration
 │   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf                   
-└── README.md
+│   └── outputs.tf
+├── README.md                 # This file
 ```
 
+---
 
-## 🔧 Technology Stack
+## Architecture
 
+```
+Frontend (port 3000)
+ └──> User Service     (port 3001)
+ └──> Product Service  (port 3002)
+ └──> Cart Service     (port 3003)
+ └──> Order Service    (port 3004)
+```
 
+All services are deployed on a single EC2 instance in the `ap-south-1` region.
 
+---
+
+## Tech Stack
+
+* **Terraform** for infrastructure provisioning
+* **AWS EC2** with `t3.medium` instance
+* **Docker** for containerized service deployment
+
+---
+
+## Infrastructure Provisioning
+
+### What Terraform Provisions:
+
+* VPC with a public subnet
+* Internet Gateway + Route Table
+* Security Group allowing:
+
+  * Port `22` for SSH
+  * Ports `3000-3004` for app access
+* EC2 instance (`t3.medium`) with:
+
+  * Docker installed via `remote-exec` provisioner
+  * Docker containers automatically pulled and started
+
+###  Remote Exec Docker Installation
+
+The EC2 instance uses a `remote-exec` provisioner to:
+
+* Install Docker (official Docker APT repository)
+* Enable and start Docker
+* Pull images from DockerHub
+* Run containers for each service
+
+---
+
+##  Usage
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd skill_test_03_B10_26_july/terraform
+```
+
+---
+
+### 2. Setup PEM File
+
+Ensure your EC2 private key is accessible, e.g.:
+
+```hcl
+private_key = file("C:/Users/Ankit Anand/Downloads/AnkitAnandHeroViredB10.pem")
+```
+
+#### Docker Command in main.tf
+
+```
+"sudo docker run -d --rm -p 3001:3001 -e PORT=3001 -e MONGODB_URI=mongodb+srv://username:password@cluster0.ou9e6.mongodb.net/ecommerce_users ankit200193/user-service:latest"
+"sudo docker run -d --rm -p 3002:3002 -e PORT=3002 -e MONGODB_URI=mongodb+srv://username:password@cluster0.ou9e6.mongodb.net/ecommerce_products ankit200193/product-service:latest"
+"sudo docker run -d --rm -p 3003:3003 -e PORT=3003 -e MONGODB_URI=mongodb+srv://username:password@cluster0.ou9e6.mongodb.net/ecommerce_carts -e PRODUCT_SERVICE_URL=http://13.234.202.151:3002 ankit200193/cart-service:latest"
+
+"sudo docker run -d --rm -p 3004:3004 -e PORT=3004 -e MONGODB_URI=mongodb+srv://username:password@cluster0.ou9e6.mongodb.net/ecommerce_orders -e CART_SERVICE_URL=http://EC2_IP:3003 -e PRODUCT_SERVICE_URL=http://13.234.202.151:3002 -e USER_SERVICE_URL=http://EC2_IP:3001 ankit200193/order-service:latest"
+
+"sudo docker run -d --rm -p 3000:3000 -e PORT=3000 -e REACT_APP_USER_SERVICE_URL=http://EC2_IP:3001 -e REACT_APP_PRODUCT_SERVICE_URL=http://EC2_IP:3002 -e REACT_APP_CART_SERVICE_URL=http://EC2_IP:3003 -e REACT_APP_ORDER_SERVICE_URL=http://EC2_IP:3004 ankit200193/frontend:latest"
+
+```
+
+---
+
+### 3. Initialize & Apply Terraform
+
+```bash
+terraform init
+terrafrom validate
+terraform apply
+```
+---
+
+### 4. Outputs
+
+Terraform prints the public IP and public DNS of the EC2 instance. Visit:
+
+```
+http://<EC2_PUBLIC_IP>:3000
+```
+---
+
+## Mongodb_user data ingestion:
+
+1. Ensure the user-service is up and running
+2. Use Postman to ingest a data or run the frontend service and register via register button:
+
+User-data endpoint : ```http://ec2_IP:3001/auth/register```
+
+**Sample user date ingested :**
+```
  "firstName": "Ankit",
   "lastName": "Anand",
   "email": "ankit.anand@example.com",
@@ -46,126 +197,43 @@ Frontend (React) → API Gateway → Microservices
   "role": "customer",
   "isActive": true
 
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd ecommerce-microservices
-```
-
-
-## 🚀 Deployment Steps
-
-### 1️⃣ Build Docker Image (Locally or CI)
-
-```bash
-docker build -t ./backend/user-service:latest .
 ```
 
 ---
 
-### 2️⃣ Provision AWS Infrastructure with Terraform
+## Cleanup
+
+To destroy all resources:
 
 ```bash
-cd terraform
-terraform init
-terraform apply
-```
-
-> Confirm with `yes` when prompted.
-
-Terraform provisions:
-
-* VPC, subnets
-* Security groups
-* EC2 instance with Docker
-* User-defined outputs
-
----
-
-### 3️⃣ SSH into EC2 and Run Docker Container
-
-```bash
-ssh -i <your-key.pem> ec2-user@<public-ip>
-```
-
-Then on the EC2 instance:
-
-```bash
-docker run -d --rm -p 3001:3001 -e PORT=3001 -e MONGODB_URI=yourmongo-db/ecommerce_users ankit200193/user-service:latest
-
-docker run -d --rm -p 3002:3002 -e PORT=3002 -e MONGODB_URI=yourmongo-db/ecommerce_products ankit200193/product-service:latest
-docker run -d --rm -p 3003:3003 -e PORT=3003 -e MONGODB_URI=yourmongo-db/ecommerce_carts -e PRODUCT_SERVICE_URL=http://13.235.83.112:3002 ankit200193/cart-service:latest
-
-docker run -d --rm -p 3004:3004 -e PORT=3004 -e MONGODB_URI=yourmongo-db/ecommerce_orders -e CART_SERVICE_URL=http://13.235.83.112:3003 -e PRODUCT_SERVICE_URL=http://13.235.83.112:3002 -e USER_SERVICE_URL=http://13.235.83.112:3001 ankit200193/order-service:latest
-
-docker run -d --rm -p 3000:3000 -e PORT=3000 -e REACT_APP_USER_SERVICE_URL=http://13.235.83.112:3001 -e REACT_APP_PRODUCT_SERVICE_URL=http://13.235.83.112:3002 -e REACT_APP_CART_SERVICE_URL=http://13.235.83.112:3003 -e REACT_APP_ORDER_SERVICE_URL=http://13.235.83.112:3004 ankit200193/frontend:latest
-
+terraform destroy -auto-approve
 ```
 
 ---
 
-## 🔄 Destroy Infrastructure
+## Final Notes
 
-```bash
-cd terraform
-terraform destroy
-```
-
-> Type `yes` to confirm deletion of all AWS resources.
+* Ensure the `.pem` file has `chmod 400` permissions
+* Terraform automatically installs Docker & deploys containers using remote-exec
+* EC2 type `t3.medium` is used to handle 5 microservices on a single host
 
 ---
 
+## Good to know facts:
 
+#### Why use remote-exec instead of user_data?
 
-## Environement requirements :
+user_data runs only once at boot, and debugging is harder when commands silently fail.
 
-**backend/user-service/.env:**
-```env
-PORT=3001
-MONGODB_URI=yourmongo-db/ecommerce_users
-```
+remote-exec ensures commands run after the instance is fully initialized, and errors are easier to trace in the Terraform logs.
 
+It also allows more dynamic and flexible execution of provisioning scripts.
 
-**backend/product-service/.env:**
-```env
-PORT=3002
-MONGODB_URI=yourmongo-db/ecommerce_products
-```
+#### Why use t3.medium instead of t2.micro?
+ 
+t3.medium provides 2 vCPUs and 4 GB RAM, which is better suited for running multiple Docker containers and services.
 
-**backend/cart-service/.env:**
-```env
-PORT=3003
-MONGODB_URI=yourmongo-db/ecommerce_carts
-PRODUCT_SERVICE_URL=http://EC2_IP:3002
-```
+t2.micro is limited to 1 vCPU and 1 GB RAM, which may lead to performance issues or failures in deploying and running services.
 
-**backend/order-service/.env:**
-```env
-PORT=3004
-MONGODB_URI=yourmongo-db/ecommerce_orders
-CART_SERVICE_URL=http://EC2_IP:3003
-PRODUCT_SERVICE_URL=http://EC2_IP:3002
-USER_SERVICE_URL=http://EC2_IP:3001
-```
-
-**frontend/.env:**
-```env
-REACT_APP_USER_SERVICE_URL=http://EC2_IP:3001
-REACT_APP_PRODUCT_SERVICE_URL=http://EC2_IP:3002
-REACT_APP_CART_SERVICE_URL=http://EC2_IP:3003
-REACT_APP_ORDER_SERVICE_URL=http://EC2_IP:3004
-```
-
-## 🔧 API Testing
-
-You can test the APIs using tools like Postman or curl:
-
-```bash
-# Health check for all services
-curl http://EC2_IP:3001/health
-curl http://EC2_IP:3002/health
-curl http://EC2_IP:3003/health
-curl http://EC2_IP:3004/health
+t3.medium instances support burstable performance and are cost-efficient for small-to-medium Docker workloads.
 
