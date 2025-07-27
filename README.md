@@ -96,11 +96,11 @@ Then on the EC2 instance:
 docker run -d --rm -p 3001:3001 -e PORT=3001 -e MONGODB_URI=yourmongo-db/ecommerce_users ankit200193/user-service:latest
 
 docker run -d --rm -p 3002:3002 -e PORT=3002 -e MONGODB_URI=yourmongo-db/ecommerce_products ankit200193/product-service:latest
-docker run -d --rm -p 3003:3003 -e PORT=3003 -e MONGODB_URI=yourmongo-db/ecommerce_carts -e PRODUCT_SERVICE_URL=http://13.202.94.86:3002 ankit200193/cart-service:latest
+docker run -d --rm -p 3003:3003 -e PORT=3003 -e MONGODB_URI=yourmongo-db/ecommerce_carts -e PRODUCT_SERVICE_URL=http://13.235.83.112:3002 ankit200193/cart-service:latest
 
-docker run -d --rm -p 3004:3004 -e PORT=3004 -e MONGODB_URI=yourmongo-db/ecommerce_orders -e CART_SERVICE_URL=http://13.202.94.86:3003 -e PRODUCT_SERVICE_URL=http://13.202.94.86:3002 -e USER_SERVICE_URL=http://13.202.94.86:3001 ankit200193/order-service:latest
+docker run -d --rm -p 3004:3004 -e PORT=3004 -e MONGODB_URI=yourmongo-db/ecommerce_orders -e CART_SERVICE_URL=http://13.235.83.112:3003 -e PRODUCT_SERVICE_URL=http://13.235.83.112:3002 -e USER_SERVICE_URL=http://13.235.83.112:3001 ankit200193/order-service:latest
 
-docker run -d --rm -p 3000:3000 -e PORT=3000 -e REACT_APP_USER_SERVICE_URL=http://13.202.94.86:3001 -e REACT_APP_PRODUCT_SERVICE_URL=http://13.202.94.86:3002 -e REACT_APP_CART_SERVICE_URL=http://13.202.94.86:3003 -e REACT_APP_ORDER_SERVICE_URL=http://13.202.94.86:3004 ankit200193/frontend:latest
+docker run -d --rm -p 3000:3000 -e PORT=3000 -e REACT_APP_USER_SERVICE_URL=http://13.235.83.112:3001 -e REACT_APP_PRODUCT_SERVICE_URL=http://13.235.83.112:3002 -e REACT_APP_CART_SERVICE_URL=http://13.235.83.112:3003 -e REACT_APP_ORDER_SERVICE_URL=http://13.235.83.112:3004 ankit200193/frontend:latest
 
 ```
 
