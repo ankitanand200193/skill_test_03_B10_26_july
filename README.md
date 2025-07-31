@@ -40,7 +40,7 @@ This project provisions AWS infrastructure using Terraform and deploys five Dock
 
 ---
 
-#### Frotend on Public Access :
+#### Frontend on Public Access :
 
 ![terminal](Screenshots/frontend_public.png)
 
